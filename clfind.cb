@@ -1,0 +1,4 @@
+; CLFIND.CB
+;-----------------------------------------------------------------------------
+common clfindblk1,     infile,levs0,dlevs,ncl,clump_peak
+common clfindblk2,     data,assign,nx,ny,nv,bx,by,bv

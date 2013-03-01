@@ -1,0 +1,5 @@
+;-----------------------------------------------------------------------------
+common header_block,    naxis1,crpix1,cdelt1,crval1,ctype1,cd1_1, $
+                        naxis2,crpix2,cdelt2,crval2,ctype2,cd2_2, $
+                        naxis3,crpix3,cdelt3,crval3,ctype3
+;-----------------------------------------------------------------------------
