@@ -13,9 +13,9 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
                 , bootstrap = bootstrap, dist = dist, bclip = bclip $
                 , physical = physical, xco = xco, minvchan = minvchan $
                 , smwidth = smwidth, rms = rmsin, ecube = ecube $
-                , near = near, far = far, r0 = r0, v0 = v0, zero2nan = zero2nan
-  
-
+                , near = near, far = far, r0 = r0, v0 = v0 $
+                , zero2nan = zero2nan $
+                , round = round
 ;+
 ;
 ; NAME:
@@ -380,7 +380,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
       , nodecomp = nodecomp, fscale = fscale $
       , noextrap = noextrap $
       , friends = friends, specfriends = specfriends $
-      , delta = deltapeak, ppbeam = ppbeam
+      , delta = deltapeak, ppbeam = ppbeam, round = round
 
 ; IF THE "show" KEYWORD IS TURNED ON, THEN OPEN THREE WINDOWS AND SHOW
 ; THE TWO-D VERSION OF THE MASK ALONG EACH OF THE THREE AXES, WITH

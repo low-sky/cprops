@@ -7,7 +7,8 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
                  , nodecomp = nodecomp, clfind = clfind $
                  , sigma = sigma, eclump = eclump, fscale = fscale $
                  , noextrap = noextrap, friends = friends $
-                 , specfriends = specfriends, delta = delta, ppbeam = ppbeam
+                 , specfriends = specfriends, delta = delta, ppbeam = ppbeam $
+                 , round = round
 
 ;+
 ; NAME:
@@ -145,7 +146,7 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
         levels = contour_values(cloud, nlevels = (n_elements(xcld)/50 > 250) < 1000)
 ;  Search for local maxima by comparing each datum with its neighbors.
         lmax = alllocmax(minicube, friends = friends, $
-                         specfriends = specfriends)
+                         specfriends = specfriends, round = round)
         message, 'Number of Local Maxima Identified:'+$
                  strcompress(string(n_elements(lmax))), /con
 
