@@ -83,7 +83,7 @@ function alllocmax, cubein, indcube = indcube, friends = friends, $
      for k = -specfriends, specfriends do begin
         for j = -friends, friends do begin
            for i = -friends, friends do begin
-              if (NOT ((i eq 0) AND (j eq 0) AND (k eq 0))) AND patch[i-friends,j-friends] then $
+              if (NOT ((i eq 0) AND (j eq 0) AND (k eq 0))) AND patch[i+friends,j+friends] then $
                  lmaxcube = $
                  lmaxcube*((cube gt shift(cube, i, j, k)) OR $
                            (finite(shift(cube, i, j, k)) eq 0))
@@ -93,7 +93,7 @@ function alllocmax, cubein, indcube = indcube, friends = friends, $
   endif else begin
      for j = -friends, friends do $
         for i = -friends, friends do $
-           if (NOT ((i eq 0) AND (j eq 0))) AND patch[i-friends,j-friends] then $
+           if (NOT ((i eq 0) AND (j eq 0))) AND patch[i+friends,j+friends] then $
               lmaxcube = $
         lmaxcube*((cube gt shift(cube, i, j)) OR $
                   (finite(shift(cube, i, j)) eq 0))
