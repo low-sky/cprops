@@ -370,7 +370,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
 ; DO THE DECOMPOSITION. CALLS THE DECOMPOSITION WRAPPER, WHICH TAKES
 ; THE SELECTED DECOMPOSITION MEASURE AND ASSIGNS EACH PIXEL TO A
 ; SUBCLOUD.
-
+    print,sigma
     decomp_wrap, x, y, v, t, asgn, decomp = decomp $
       , subcloud = subcloud, minpix = minpix $
       , sigdiscont = sigdiscont $

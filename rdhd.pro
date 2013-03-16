@@ -29,6 +29,9 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
 ;
 ; MODIFICATION HISTORY:
 ;
+;       Wed Mar 13 20:01:33 2013, erosolo <erosolo@>
+;         Added header parsing for ALMA data.
+;
 ;       Wed Jun 2 09:40:27 2004, <eros@master>
 ;		Added more AIPS compatibility (FREQ0 convention and
 ;		multiple clean entries)
@@ -77,6 +80,9 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
   
   if keyword_set(full) then fast = 0b else fast = 1b
 
+  cms = 2.99792458d8            ; It's the speed of light
+
+
   dim = sxpar(hd, 'NAXIS')
   naxis1 = sxpar(hd, 'NAXIS1')
   naxis2 = sxpar(hd, 'NAXIS2')
@@ -100,6 +106,7 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
     endif
   endif
   freq = sxpar(hd, 'RESTFREQ') > sxpar(hd, 'FREQ0')
+  freq = freq > sxpar(hd,'RESTFRQ') ; ALMA! Grrrrrr!
   date = sxpar(hd, 'DATE-OBS')
   extast, hd, astrom
 ;nelts = max([naxis1, naxis2])
@@ -157,7 +164,8 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
     endelse
 
     getrot, hd, rotation, cdv
-
+    nuvec = !values.f_nan
+    
     if naxis3 gt 1 then begin
 ; First, regenerate the astrometry structure to include the THIRD
 ; DIMENSION!!!
@@ -173,6 +181,15 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
       velvec = (findgen(naxis3)+1-astrom.crpix[2])*$
                astrom.cdelt[2]+astrom.crval[2]
       cdv = [cdv, sxpar(hd, 'CDELT3')]
+
+      if (strcompress(sxpar(hd,'CUNIT3'),/rem) eq 'Hz') and $
+         (freq gt 0) then begin
+         message,/con,$
+                 'Frequency Cube!  Converting to VRAD using nu0 = '+$
+                 string(freq)
+         nuvec = velvec
+         velvec = cms*(1-nuvec/freq)
+      endif
     endif else begin
       velvec = 0 
       dim = 2
@@ -183,7 +200,7 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
                  2*!pi/(8*alog(2)))
     
     structure = {naxis1:naxis1, naxis2:naxis2, $
-                 naxis3:naxis3, ra:ravec, dec:decvec, v:velvec, $
+                 naxis3:naxis3, ra:ravec, dec:decvec, v:velvec, nu:nuvec,$
                  ctype:astrom.ctype, $
                  crpix:astrom.crpix, $
                  crval:astrom.crval, $
