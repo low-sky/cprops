@@ -31,6 +31,10 @@ function alllocmax, cubein, indcube = indcube, friends = friends, $
 ;
 ; MODIFICATION HISTORY:
 ;
+;       Tue Apr 16 15:09:40 2013, erosolo <erosolo@>
+;
+;		Enabled specfriends = 0 for 3D case.
+;
 ;       Wed Feb 13 20:44:16 2013, erosolo <erosolo@> 
 ;           Added in the /round keyword to enable circular patches.
 ;
@@ -72,7 +76,7 @@ function alllocmax, cubein, indcube = indcube, friends = friends, $
   endif else patch = bytarr(2*friends+1,2*friends+1)+1b
 
 
-  if specfriends gt 0 then begin
+  if specfriends gt -1 then begin
 ;;     for k = -specfriends, specfriends do $
 ;;       for j = -friends, friends do $
 ;;         for i = -friends, friends do $
