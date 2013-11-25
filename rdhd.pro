@@ -29,6 +29,10 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
 ;
 ; MODIFICATION HISTORY:
 ;
+;       Mon Jun 10 20:09:36 2013, erosolo <erosolo@>
+;		Added minor trapping for some JCMT headers.  Considering that
+;		this should really be using z2v and v2z codes instead.
+;
 ;       Wed Mar 13 20:01:33 2013, erosolo <erosolo@>
 ;         Added header parsing for ALMA data.
 ;
@@ -169,33 +173,35 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
     if naxis3 gt 1 then begin
 ; First, regenerate the astrometry structure to include the THIRD
 ; DIMENSION!!!
-      astrom2 = {CD:astrom.cd, $
-                 CDELT:[astrom.cdelt, sxpar(hd, 'CDELT3')], $
-                 CRPIX:[astrom.crpix, sxpar(hd, 'CRPIX3')], $
-                 CRVAL:[astrom.crval, sxpar(hd, 'CRVAL3')], $
-                 CTYPE:[astrom.ctype, sxpar(hd, 'CTYPE3')], $
-                 LONGPOLE:astrom.longpole, $
-                 LATPOLE:astrom.latpole, $
-                 PV2:astrom.pv2}
-      astrom = astrom2
-      velvec = (findgen(naxis3)+1-astrom.crpix[2])*$
+       dv = sxpar(hd,'CDELT3')
+       if dv eq 0 then dv = sxpar(hd,'CD3_3')
+       astrom2 = {CD:astrom.cd, $
+                  CDELT:[astrom.cdelt, dv], $
+                  CRPIX:[astrom.crpix, sxpar(hd, 'CRPIX3')], $
+                  CRVAL:[astrom.crval, sxpar(hd, 'CRVAL3')], $
+                  CTYPE:[astrom.ctype, sxpar(hd, 'CTYPE3')], $
+                  LONGPOLE:astrom.longpole, $
+                  LATPOLE:astrom.latpole, $
+                  PV2:astrom.pv2}
+       astrom = astrom2
+       velvec = (findgen(naxis3)+1-astrom.crpix[2])*$
                astrom.cdelt[2]+astrom.crval[2]
-      cdv = [cdv, sxpar(hd, 'CDELT3')]
-
-      if (strcompress(sxpar(hd,'CUNIT3'),/rem) eq 'Hz') and $
-         (freq gt 0) then begin
-         message,/con,$
-                 'Frequency Cube!  Converting to VRAD using nu0 = '+$
-                 string(freq)
-         nuvec = velvec
-         velvec = cms*(1-nuvec/freq)
-      endif
+       cdv = [cdv, sxpar(hd, 'CDELT3')]
+       if (strcompress(sxpar(hd,'CUNIT3'),/rem) eq 'Hz') and $
+          (freq gt 0) then begin
+          message,/con,$
+                  'Frequency Cube!  Converting to VRAD using nu0 = '+$
+                  string(freq)
+          nuvec = velvec
+          velvec = cms*(1-nuvec/freq)
+       endif
     endif else begin
-      velvec = 0 
-      dim = 2
+       velvec = 0 
+       dim = 2
     endelse
+    if stregex(sxpar(hd,'CUNIT3'),'km/s',/bool) then velvec = velvec*1e3
     if not keyword_set(ms) then velvec = velvec/1000.
-
+    
     ppbeam = abs((bm_maj*bm_min/3600.^2)/(cdv[0]*cdv[1])*$
                  2*!pi/(8*alog(2)))
     

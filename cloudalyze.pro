@@ -243,6 +243,15 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
     vuse = v[useind]
     tuse = t[useind]
 
+;   Occasionally, you will want to apply an assignment structure to a
+;   different cube.  There is a risk that there is bad data in some cloud
+;   so the element should return empty structure.
+    if total(finite(tuse)) ne n_elements(tuse) then begin
+       if (n_elements(cpropsra) eq 0) then $
+          cpropsra = origcprops else $
+             cpropsra = [cpropsra, origcprops]
+       continue
+    endif
 ;   CALL THE "cloudmom" ROUTINE TO CALCULATE THE CUMULATIVE MOMENTS
 ;   AND THEN EXTRAPOLATE THEM TO THE TARGET CONTOUR, "targett"
 
