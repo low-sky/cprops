@@ -65,7 +65,10 @@ function alllocmax, cubein, indcube = indcube, friends = friends, $
   endif
 
   if n_elements(specfriends) eq 0 then specfriends = 1 
-
+  
+; Round up to integers in case we have fractional pixel sizes make it this far.  Thanks a lot, user.
+  specfriends = ceil(specfriends)
+  friends = ceil(friends)
 
 ; A LOCAL MAXIMA IS A POINT WHICH IS GREATER THAN ALL OF THE POINTS
 ; AROUND IT.

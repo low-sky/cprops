@@ -186,7 +186,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
 
 ; Set specfriends to 2 km/s or 1 
     if n_elements(specfriends) eq 0 then begin
-      specfriends = (2e3/deltav) > 1.0
+      specfriends = ceil((2e3/deltav) > 1.0)
       if specfriends eq 1.0 then message, 'Warning: Velocity resolution too coarse for fully accurate decomposition', /con
     endif
   endif
