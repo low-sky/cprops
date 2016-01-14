@@ -46,6 +46,8 @@ function deriv_decimate_kernel, cube, merger, lmaxin, levels = levels $
 ;-
 
 
+  if n_elements(sigdiscont) eq 0 then sigdiscont = 2 
+
   if total(sigdiscont) eq 0 then begin
      message,'Skipping Derivative Decimation',/con
      return, lmaxin

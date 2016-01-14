@@ -109,6 +109,21 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
       bpa = float(str[8])
     endif
   endif
+
+; CASA beam extraction bits.
+  if bm_maj eq 0 then begin
+     ind = where(strpos(hdr,'restoration:') gt 0 and $
+                 strpos(hdr,'(arcsec)') gt 0, ct)
+     if ct gt 0 then begin
+        str = hdr[max(ind)]
+        str = strsplit(str, /ext)
+        bm_maj = float(str[3]) ; Already in arcsec.
+        bm_min = float(str[5])
+        bpa = float(str[9])
+     endif
+  endif
+
+
   freq = sxpar(hd, 'RESTFREQ') > sxpar(hd, 'FREQ0')
   freq = freq > sxpar(hd,'RESTFRQ') ; ALMA! Grrrrrr!
   date = sxpar(hd, 'DATE-OBS')
