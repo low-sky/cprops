@@ -1,96 +1,98 @@
 function mergefind, cube, kernels, nlevels = nlevels $
                     , terminate = terminate, everypoint = everypoint $
                     , all_neighbors = all_neighbors, uniform = uniform $
-                    , levels = levels, augmented_levels=lvs
-
-; ATTEMPT TO CREATE AN EFFICIENT ALGORITHM TO POPULATE THE MERGER
-; MATRIX WITH INFINITE RESOLUTION
-
+                    , levels = levels, area = area
+;+
+; NAME:
+;   MERGEFIND
+; PURPOSE:
+;   To isolate the contour level at which two maxima share contours.
+;
+; CALLING SEQUENCE:
+;   merge_matrix = MERGEFIND(cube, index_maxima [,/ALL_NEIGHBORS ,
+;   /EVERYPOINT, NLEVELS=nlevels])
+;
+; INPUTS:
+;   CUBE -- A data cube
+;   INDEX_MAXIMA -- The indices of the maxima in the data cube.
+;
+; KEYWORD PARAMETERS:
+;   NLEVELS -- The number of levels to divide the range of the
+;              datacube into.
+;   EVERYPOINT -- Use every point in the data cube to achieve maximum
+;                 accuracy in the contour levels.
+;   ALL_NEIGHBORS -- Set this keyword to make pixels have 26 neighbors
+;                    and not 6.
+;
+; OUTPUTS:
+;   MERGE_MATRIX -- For N kernels, an N X N matrix with the j,k
+;                   element being the contour level where the jth
+;                   kernel merges with the kth kernel. 
+;                
+; MODIFICATION HISTORY:
+;
+;       Wed Dec 8 09:50:54 2004, Erik Rosolowsky <eros@cosmic>
+;		Added CONTOUR_VALUES() call to get the same contour
+;		values we always want.
+;
+;       Thu Dec 2 17:23:31 2004, Erik Rosolowsky <eros@cosmic>
+;		Adapted for television.
+;
+;-
 
 ; CHECK THAT WE HAVE SOME KERNELS TO TRY MERGING.
   kernel_ct = n_elements(kernels)
   if kernel_ct eq 0 then $
     return, !values.f_nan
 
-
-; INITIALIZE THE RESULTING DATA PRODUCTS
-  merger = fltarr(kernel_ct, kernel_ct)+!values.f_nan
-;  merger[0, 1:*] = cube[kernels]
-;  merger[1:*, 0] = cube[kernels]
-  merger[indgen(kernel_ct), indgen(kernel_ct)] = cube[kernels]
-  area = fltarr(kernel_ct, kernel_ct)+!values.f_nan
-
-  kval = cube[kernels]
-  maxvalue = max(kval, /nan)
-  minvalue = min(kval, /nan)
-
-;  merger_upper =  fltarr(kernel_ct, kernel_ct)+maxvalue
-  merger_lower = fltarr(kernel_ct, kernel_ct)+!values.f_nan
-
-  if n_elements(levels) eq 0 then begin
-    if n_elements(nlevels) eq 0 then  nlevels = (n_elements(x)/50 > 250) < 500
+; TERMINATE IS THE MINIMUM LEVEL TO LOOK FOR SHARED CONTOURS AT. IT
+; DEFAULTS TO THE SMALLEST DATA VALUE IN THE CUBE, AT WHICH EVERYTHING
+; WILL MERGE.
+  
+  if (n_elements(levels) eq 0) then $
     levels = contour_values(cube, nlevels = nlevels, minimum = terminate, $
                             all = everypoint, uniform = uniform)
 
-  endif
-  lvs = levels[sort(levels)]
-  mld = abs(median(lvs-shift(lvs,1)))
 
-  nuniqold = 0
-  doneflag = 0b
-  z = 0L
-  repeat begin 
-; Mask and label a data cube for a given contour value
-    testvalue = lvs[z]
-    l = label_region(cube ge testvalue, all_neighbors = all_neighbors, /ulong)
-; Figure out what the kernels are assigned to
-    asgns = l[kernels]
-; Figure out which assignments show up more than once
-    h = histogram(asgns, min = 1, max = max(l), binsize = 1, reverse = ri)
-    multiples = where(h gt 1, n_multi)
-    nuniq = total(h ge 1)
-    count = intarr(kernel_ct)
-; Some data cubes really can't be split so this requires a minimum
-; resolution of 1e-3 times the median level difference.
-    if (nuniq-nuniqold) gt 1 and z gt 0 and ((lvs[z]-lvs[z-1 > 0]) ge $
-      1e-3*mld) then begin
-; If we get a non-binary split then
-      lvs = [lvs[0:(z-1)], (lvs[z-1]+lvs[z])*0.5, lvs[z:*]]
-    endif else begin
-; If we have a duplicate then ....
-      if n_multi gt 0 then begin
-        for k = 0, n_multi-1 do begin
-; Figure out which kernels are sharing an assignment
-          multikern = ri[ri[multiples[k]]:(ri[multiples[k]+1]-1)]
-          multikern = multikern#(intarr(h[multiples[k]])+1)        
-; Write this into the merger matrix.
-          merger_lower[multikern, transpose(multikern)] = testvalue        
-        endfor  
+; MAKE THE MERGER MATRIX, WHICH CONTAINS THE DATA VALUES ON THE DIAGONAL
+; AND SHARED CONTOUR INDICES BETWEEN KERNEL ELEMENTS.
+  merger = fltarr(kernel_ct+1, kernel_ct+1)+!values.f_nan
+;  merger[0, 1:*] = cube[kernels]
+;  merger[1:*, 0] = cube[kernels]
+  merger[indgen(kernel_ct)+1, indgen(kernel_ct)+1] = cube[kernels]
+
+  area = fltarr(kernel_ct+1, kernel_ct+1)+!values.f_nan
+
+  for k = 0, n_elements(levels)-1 do begin
+
+    thresh = levels[k]
+    m = cube ge thresh
+    asgn = label_region(m, all_neighbors = all_neighbors, /ulong)
+
+    for q = 1, max(asgn) do begin
+      inds = where(asgn eq q, pixct)
+; Find kernels in each distinct region
+      kernel_int = intersection(inds, kernels, ct)
+      if ct eq 1 then begin
+        kernel_index = where(kernels eq kernel_int[0])+1
+        area[kernel_index, kernel_index] = $
+          (area[kernel_index, kernel_index] > pixct)        
       endif
-; When a pair of kernels stops merging it won't write into the merger matrix.
-      nuniqold = nuniq
-      z = z+1
-    endelse
-    if z eq n_elements(lvs) then doneflag = 1b
-  endrep until (doneflag eq 1)
-
- 
-  merger_lower[indgen(kernel_ct), indgen(kernel_ct)] = cube[kernels]
-; If the top hasn't been resolved, do it.
-  ind = where(merger_lower eq max(lvs), ct)
-  if ct gt 0 and ct mod 2 eq 0 then begin
-    k1 = ind mod n_elements(kernels)
-    k2 = ind / n_elements(kernels)
-    kern1 = kernels[k1]
-    kern2 = kernels[k2]
-    for i = 0, n_elements(ind)-1 do begin
-      if kern1[i] eq kern2[i] then continue
-      merger_lower[k1[i], k2[i]] = $
-         minimergefind($
-         cube, kern1[i], [kern1[i], kern2[i]], $
-         all_neighbors = all_neighbors)
+; If there are more than 1 kernel then ...
+      if ct gt 1 then begin
+        kernel_index = lonarr(n_elements(kernel_int))
+        for lame = 0, n_elements(kernel_int)-1 do $
+          kernel_index[lame] = where(kernels eq kernel_int[lame])
+        xmatrix = kernel_index#(intarr(n_elements(kernel_int))+1)+1
+        ymatrix = transpose(xmatrix)
+        merger[xmatrix, ymatrix] = $
+          (merger[xmatrix, ymatrix] > thresh)        
+        area[xmatrix, ymatrix] = $
+          (float(pixct) < area[xmatrix, ymatrix]) 
+      endif
     endfor
- endif
-  merger_lower = merger_lower > transpose(merger_lower)
-  return, merger_lower
+    if total(merger ne merger) le 1 then return,  merger[1:*, 1:*]
+  endfor
+  area = area[1:*, 1:*]
+  return, merger[1:*, 1:*]
 end

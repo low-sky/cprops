@@ -7,8 +7,7 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
                  , nodecomp = nodecomp, clfind = clfind $
                  , sigma = sigma, eclump = eclump, fscale = fscale $
                  , noextrap = noextrap, friends = friends $
-                 , specfriends = specfriends, delta = delta, ppbeam = ppbeam $
-                 , round = round
+                 , specfriends = specfriends, delta = delta, ppbeam = ppbeam
 
 ;+
 ; NAME:
@@ -84,12 +83,14 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
   if (keyword_set(nodecomp) + keyword_set(eclump) + $
       keyword_set(clfind)) ne 1 then $
         propdecomp = 1
+
 ; %&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&
 ; LOOP OVER CLOUDS AND DECOMPOSE
 ; %&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&
 
 ; The main loop. Tackle each of the clouds in succession.
   for k = 0, n_elements(avals)-1 do begin
+
 ;   First extract the cloud from the cube (get X,Y,V,T)
     clindex = where(assignment eq avals[k])
     xcld = x[clindex]
@@ -101,6 +102,7 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
 ;   should attempt to decompose this cloud.
     decompflag = total(decomp[clindex] eq 1b) gt 0
 
+  
     pad = 1 > sqrt(ppbeam/!pi) > friends
 
 ;     First make a cube out of the indices. It's a small cube, just
@@ -125,7 +127,6 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
 ;     -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    
         print, 'Williams Clumpfind.'
         writefits, 'dummy_file.fits', minicube
-        if n_elements(delta) gt 0 then sigma = delta/2
         clfind, file = 'dummy_file', low = 0.0, inc = 2*sigma
         dummy = readfits('dummy_file.fits.clf', hd)
         spawn, 'rm dummy_file.fits.clf', /sh
@@ -144,9 +145,10 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
 ;     Determine a master set of contour values with the contour_values
 ;     function.
         levels = contour_values(cloud, nlevels = (n_elements(xcld)/50 > 250) < 1000)
+
 ;  Search for local maxima by comparing each datum with its neighbors.
         lmax = alllocmax(minicube, friends = friends, $
-                         specfriends = specfriends, round = round)
+                         specfriends = specfriends)
         message, 'Number of Local Maxima Identified:'+$
                  strcompress(string(n_elements(lmax))), /con
 
@@ -157,7 +159,7 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
           decimkern = decimate_kernels(lmax, minicube, $
                                      all_neighbors = all_neighbors $
                                      , delta = delta, sigma = sigma $
-                                     , minpix = minpix);, levels = levels)
+                                     , minpix = minpix, levels = levels)
           message, 'Number of kernels after area and contrast decimation:'+$
                    strcompress(string(n_elements(decimkern))), /con
 

@@ -1,6 +1,6 @@
-pro cubify,  x, y, v, t, szin, cube = cube, mask = mask, indcube = indcube $
-             , id = id, indvec = indvec, pad = pad, location = location $
-             , twod = twod
+pro cubify,  x, y, v, t, sz, cube = cube, mask = mask, indcube = indcube $
+             , id = id, indvec = indvec, pad = pad, location = location
+
 ;+
 ; NAME:
 ;   CUBIFY
@@ -16,9 +16,7 @@ pro cubify,  x, y, v, t, szin, cube = cube, mask = mask, indcube = indcube $
 ;   SZ -- Size structure characterizing the datacube. 
 ; KEYWORD PARAMETERS:
 ;   ID -- Vector of cloud identifications.  
-;   TWOD -- Set this flag to force "cubification" to a 2-D matrix.
-;           Mostly for compatibility with routines outside the CRPOPS
-;           distribution. 
+;
 ; OUTPUTS:
 ;   CUBE -- Set this to named variable containing the output data cube
 ;           restored to full size.
@@ -35,7 +33,7 @@ pro cubify,  x, y, v, t, szin, cube = cube, mask = mask, indcube = indcube $
 ;-
 
   help, calls = calls
-  if n_elements(szin) lt 4 then begin 
+  if n_elements(sz) lt 4 then begin 
     if n_elements(calls) eq 2 then $
     message, 'No size information.  Assuming minimum size.', /con
 
@@ -52,10 +50,7 @@ pro cubify,  x, y, v, t, szin, cube = cube, mask = mask, indcube = indcube $
       miny = min(y) - pad
       minv = min(v) - pad
     endelse
-    if sz[0] eq 2 or keyword_set(twod) then begin
-      sz[3] = 1
-      minv = 0
-    endif
+
 ;   NUMBER OF ELEMENTS
     sz[0] = long(sz[1])*sz[2]*sz[3]
 
@@ -83,11 +78,11 @@ pro cubify,  x, y, v, t, szin, cube = cube, mask = mask, indcube = indcube $
     location = indexcube[x-minx, y-miny, v-minv]
 
   endif else begin
-    sz = szin
-    if sz[0] eq 2 then sz[3] = 1
+
     if n_elements(minx) eq 0 then minx = 0
     if n_elements(miny) eq 0 then miny = 0
     if n_elements(minv) eq 0 then minv = 0
+
 ;   ERROR CHECKING
     if (keyword_set(pad) AND (n_elements(sz) gt 0)) then $
       print, 'Keyword PAD has no effect when SZ is supplied. Ignoring. Dumbass.'

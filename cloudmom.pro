@@ -2,7 +2,7 @@ function cloudmom, xin, yin, vin, tin $
                    , mom2x = mom2x, mom2y = mom2y, mom2v = mom2v $
                    , mom0t = mom0t, targett = targett $
                    , forcelin = forcelin, noextrap = noextrap $
-                   , find_covariance = covar, covariance = cov, err = err
+                   , find_covariance = covar, covariance = cov
 
 ;+
 ; NAME:
@@ -116,84 +116,19 @@ function cloudmom, xin, yin, vin, tin $
     cov = term1cov-term2cov
   endif else cov = !values.d_nan
 
-  xcen = total(x*t)/total(t)
-  ycen = total(y*t)/total(t)
-  vcen = total(v*t)/total(t)
-
-  ermsx = !values.d_nan
-  ermsy = !values.d_nan
-  ermsv = !values.d_nan
-  eflux = !values.d_nan
-
-  if n_elements(err) eq n_elements(x) then begin
-    eflux = double(sqrt(total(err^2)))
- ;    null = wt_moment(x, t, err = err)
-;     ermsx = double(null.errsd)
-;     null = wt_moment(y, t, err = err)
-;     ermsy = double(null.errsd)
-;     null = wt_moment(v, t, err = err)
-;     ermsv = double(null.errsd)
-    count = n_elements(t)
-    l = n_elements(t)-1 
-    meanx = total(x*t)/total(t)
-    meanx_err = total(x^2*err^2)/mom0t[l]^2-$
-      2*total(t*x)*total(x*err^2)/mom0t[l]^3+$
-      total(err^2)*total(t*x)^2/mom0t[l]^4
-    meanx2_err = total(x^4*err^2)/mom0t[l]^2-$
-      2*total(t*x^2)*total(x^2*err^2)/mom0t[l]^3+$
-      total(err^2)*total(t*x^2)^2/mom0t[l]^4
-    xterm = total(x^3*err^2)/mom0t[l]^2-$
-      total(x^2*err^2)*total(t*x)/mom0t[l]^3-$
-      total(x*err^2)*total(t*x^2)/mom0t[l]^3+$
-      total(t*x^2)*total(t*x)*total(err^2)/mom0t[l]^4
-
-    ermsx = sqrt((meanx2_err+4*(meanx^2)*meanx_err-2*meanx*xterm)/mom2x[l]^2/4)
-    
-    meany = total(y*t)/total(t)
-    meany_err = total(y^2*err^2)/mom0t[l]^2-$
-      2*total(t*y)*total(y*err^2)/mom0t[l]^3+$
-      total(err^2)*total(t*y)^2/mom0t[l]^4
-    meany2_err = total(y^4*err^2)/mom0t[l]^2-$
-      2*total(t*y^2)*total(y^2*err^2)/mom0t[l]^3+$
-      total(err^2)*total(t*y^2)^2/mom0t[l]^4
-    yterm = total(y^3*err^2)/mom0t[l]^2-$
-      total(y^2*err^2)*total(t*y)/mom0t[l]^3-$
-      total(y*err^2)*total(t*y^2)/mom0t[l]^3+$
-      total(t*y^2)*total(t*y)*total(err^2)/mom0t[l]^4
-    ermsy = sqrt((meany2_err+4*(meany^2)*meany_err-2*meany*yterm)/mom2y[l]^2/4)
-    
-    meanv = total(v*t)/total(t)
-    meanv_err = total(v^2*err^2)/mom0t[l]^2-$
-      2*total(t*v)*total(v*err^2)/mom0t[l]^3+$
-      total(err^2)*total(t*v)^2/mom0t[l]^4
-    meanv2_err = total(v^4*err^2)/mom0t[l]^2-$
-      2*total(t*v^2)*total(v^2*err^2)/mom0t[l]^3+$
-      total(err^2)*total(t*v^2)^2/mom0t[l]^4
-    vterm = total(v^3*err^2)/mom0t[l]^2-$
-      total(v^2*err^2)*total(t*v)/mom0t[l]^3-$
-      total(v*err^2)*total(t*v^2)/mom0t[l]^3+$
-      total(t*v^2)*total(t*v)*total(err^2)/mom0t[l]^4
-    ermsv = sqrt((meanv2_err+4*(meanv^2)*meanv_err-2*meanv*vterm)/mom2v[l]^2/4)
-  endif  
-
-
   if (keyword_set(noextrap)) then $
     return, {rmsx: double(mom2x[n_elements(mom2x)-1]) $
              , rmsy: double(mom2y[n_elements(mom2y)-1]) $
              , rmsv: double(mom2v[n_elements(mom2v)-1]) $
              , flux: double(mom0t[n_elements(mom0t)-1]) $
-             , ermsx:ermsx $
-             , ermsy:ermsy $
-             , ermsv:ermsv $
-             , eflux:eflux $
-             , covar:cov, number:long(n_elements(t)) $
-             , xcen:double(xcen), ycen:double(ycen) $
-             , vcen:double(vcen) $
-            }
+             , ermsx:!values.d_nan $
+             , ermsy:!values.d_nan $
+             , ermsv:!values.d_nan $
+             , eflux:!values.d_nan $
+             , covar:cov, number:long(n_elements(t))}
 
 ; USE THE "EXTRAP" ROUTINE TO EXTRAPOLATE THE MOMENT VALUES TO OUR
 ; DESIRED ANTENNA TEMPERATURE CONTOUR, "targett."
-
   ex_mom2x = extrap(t, mom2x, targett = targett, /fast, scatter = e_mom2x, /weight)
   ex_mom2y = extrap(t, mom2y, targett = targett, /fast, scatter = e_mom2y, /weight)
   ex_mom2v = extrap(t, mom2v, targett = targett, /fast, scatter = e_mom2v, /weight)
@@ -218,16 +153,13 @@ function cloudmom, xin, yin, vin, tin $
     endif
     ex_mom0t = extrap(t, mom0t, targett = targett, /fast)
   endif
-  return, {rmsx:(double(ex_mom2x))[0], rmsy: (double(ex_mom2y))[0] $
-           , rmsv: (double(ex_mom2v))[0], flux: (double(ex_mom0t))[0] $
-           , ermsx:(double(e_mom2x/ex_mom2x))[0] $
-           , ermsy:(double(e_mom2y/ex_mom2y))[0] $
-           , ermsv:(double(e_mom2v/ex_mom2v))[0] $
-           , eflux:(double(e_mom0t/ex_mom0t))[0] $
-           , covar:(double(ex_cov))[0], number:long(n_elements(t)) $
-           , xcen:double(xcen), ycen:double(ycen) $
-           , vcen:double(vcen) $
-          }
+  return, {rmsx: double(ex_mom2x), rmsy: double(ex_mom2y) $
+           , rmsv: double(ex_mom2v), flux: double(ex_mom0t) $
+           , ermsx:double(e_mom2x/ex_mom2x) $
+           , ermsy:double(e_mom2y/ex_mom2y) $
+           , ermsv:double(e_mom2v/ex_mom2v) $
+           , eflux:double(e_mom0t/ex_mom0t) $
+           , covar:ex_cov, number:long(n_elements(long))}
   
 end                             ; of cloudmom
 

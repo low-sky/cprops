@@ -1,4 +1,4 @@
-function sigma_cube, data, width = width, emap = emap, spline = spline
+function sigma_cube, data, width = width, emap = emap
 ;+
 ; NAME:
 ;   SIGMA_CUBE
@@ -30,10 +30,9 @@ function sigma_cube, data, width = width, emap = emap, spline = spline
   if n_elements(width) eq 0 then width = 3
   if n_elements(emap) eq 0 then emap = errmap_rob(data)
 
-;  if width gt 0 then emap = smooth(emap, width, /edge_trun, /nan)
-  if width gt 0 then emap = median(emap, width)
-  escale = channelnoise(data, spline = spline)
-  escale = escale/mean(escale[where(escale eq escale)])
+  if width gt 0 then emap = smooth(emap, width, /edge_trun, /nan)
+  escale = channelnoise(data)
+  escale = escale/median(escale[where(escale eq escale)])
   ecube = fltarr(sz[1], sz[2], sz[3])
   for ii = 0, sz[3]-1 do ecube[*, *, ii] = emap*escale[ii]
 

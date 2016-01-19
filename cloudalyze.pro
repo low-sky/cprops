@@ -57,8 +57,6 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
 ;
 ;-
 
-  forward_function kindist
-
 ; FOR CONVENIENCE, ASSIGN "not-a-number" TO THE nan VARIABLE
   nan = !values.f_nan
   dnan = !values.d_nan
@@ -119,8 +117,6 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
                  mvir_uc : nan, $ ; FRACTIONAL UNCERTAINTY
                  name : '', $   ; STRING OF DATASET NAME
                  beamfwhm_pc : nan, $ ; PARSECS
-                 beammaj_pc : nan, $
-                 beammin_pc : nan, $
                  sigchan_kms : nan, $ ; KM/S SIGMA OF ONE CHANNEL
                  galname : '', $ ; NAME OF GALAXY WHERE CLOUD LIVES
                  rmstorad : nan, $ ; RMS -> RADIUS CONVERSION
@@ -245,15 +241,6 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
     vuse = v[useind]
     tuse = t[useind]
 
-;   Occasionally, you will want to apply an assignment structure to a
-;   different cube.  There is a risk that there is bad data in some cloud
-;   so the element should return empty structure.
-    if total(finite(tuse)) ne n_elements(tuse) then begin
-       if (n_elements(cpropsra) eq 0) then $
-          cpropsra = origcprops else $
-             cpropsra = [cpropsra, origcprops]
-       continue
-    endif
 ;   CALL THE "cloudmom" ROUTINE TO CALCULATE THE CUMULATIVE MOMENTS
 ;   AND THEN EXTRAPOLATE THEM TO THE TARGET CONTOUR, "targett"
 
@@ -333,11 +320,9 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
       cprops.distance_pc = dist
     
 ;   INPUT THE KNOWN FWHM BEAM SIZE (IN PC) INTO THE CPROPS STRUCTURE    
-    if (not (usekindist)) then begin 
+    if (not (usekindist)) then $
       cprops.beamfwhm_pc = beamfwhm/3600.*!dtor*dist ; PARSECS
-      cprops.beammaj_pc = hdstruct.bmaj/3600*!dtor*dist
-      cprops.beammin_pc = hdstruct.bmin/3600*!dtor*dist
-   endif
+
 ;   FIRST CALCULATE PHYSICAL RESOLUTIONS (X, Y, V PIXEL SIZE IN PC &
 ;   KM/S)
     if (not (usekindist)) then begin
@@ -421,19 +406,6 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
                          sqrt(rmsmin_pc^2-(cprops.beamfwhm_pc/2.354)^2))*$
       cprops.rmstorad
 
-    if hdstruct.bpa ne 0 then begin
-       deconvolve_gauss, meas_maj = rmsmaj_pc * 2.354, $
-                         meas_min = rmsmin_pc * 2.354, $
-                         beam_pa = hdstruct.bpa, $
-                         meas_pa = pa*!radeg-90, $
-                         beam_maj = cprops.beammaj_pc, $
-                         beam_min = cprops.beammin_pc, $
-                         src_maj = smaj, $
-                         src_min = smin
-       cprops.rad_pc = sqrt(smaj*smin)*cprops.rmstorad/2.354
-       if cprops.rad_pc eq 0 then cprops.rad_pc = !values.f_nan
-    endif
-
 ;    cprops.rad_pc = $
 ;      cprops.rmstorad*sqrt(rmsx_pc^2 + rmsy_pc^2 $
 ;                           - 2.*(cprops.beamfwhm_pc/2.354)^2.)*sqrt(0.5)
@@ -443,20 +415,6 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
     cprops.rad_noex = sqrt(sqrt(rmsmaj_noex^2-(cprops.beamfwhm_pc/2.354)^2)*$
                            sqrt(rmsmin_noex^2-(cprops.beamfwhm_pc/2.354)^2))*$
       cprops.rmstorad
-
-    if hdstruct.bpa ne 0 then begin
-       deconvolve_gauss, meas_maj = rmsmaj_noex * 2.354, $
-                         meas_min = rmsmin_noex * 2.354, $
-                         beam_pa = hdstruct.bpa, $
-                         meas_pa = pa*!radeg-90, $
-                         beam_maj = cprops.beammaj_pc, $
-                         beam_min = cprops.beammin_pc, $
-                         src_maj = smaj, $
-                         src_min = smin
-       cprops.rad_noex = sqrt(smaj*smin)*cprops.rmstorad/2.354
-       if cprops.rad_noex eq 0 then cprops.rad_pc = !values.f_nan
-    endif
-
     
 ;    cprops.rad_noex = $
 ;      cprops.rmstorad*sqrt(rmsx_noex^2 + rmsy_noex^2 $

@@ -60,8 +60,7 @@ function extrap, xin, yin, targett = targett, fast = fast, $
     xuse = xuse[goodind]
   endif
 ; TO DO THINGS FAST, WE DECIMATE THE ARRAY DOWN TO 250 ELEMENTS
-
- if (keyword_set(fast)) and (n_elements(xuse) gt 250) then begin
+  if (keyword_set(fast)) and (n_elements(xuse) gt 250) then begin
     useindex = findgen(250)*n_elements(xuse)/250. 
     xuse = xuse[useindex]
     yuse = yuse[useindex]
@@ -112,18 +111,14 @@ function extrap, xin, yin, targett = targett, fast = fast, $
 
     xfit = xuse
     yfit = yuse
-
-
-
-    wfit = (reverse(findgen(n_elements(yfit))+1.0)); WEIGHT BY CONTOUR NUMBER (BIG = MORE WEIGHT)
     
+    wfit = reverse(findgen(n_elements(yfit))+1.0) ; WEIGHT BY CONTOUR NUMBER (BIG = MORE WEIGHT)
+
     if (NOT keyword_set(square)) then begin
       M = [[total(wfit), total(xfit*wfit)], $
            [total(xfit*wfit), total(xfit^2*wfit)]]
       covar = invert(M)
       coeffs = reform(covar##transpose([total(yfit*wfit), total(xfit*yfit*wfit)]))
-      yf = coeffs[0]+coeffs[1]*xfit
-      chisq = total((yfit-yf)^2)/(n_elements(xfit)-2)
     endif else begin
       M = [[total(wfit), total(xfit*wfit), total(xfit^2*wfit)], $
            [total(xfit*wfit), total(xfit^2*wfit), total(xfit^3*wfit)], $
@@ -132,18 +127,11 @@ function extrap, xin, yin, targett = targett, fast = fast, $
       coeffs = $
         reform(covar##transpose([total(yfit*wfit), total(xfit*yfit*wfit) $
                                  , total(xfit^2*yfit*wfit)]))
-      yf = coeffs[0]+coeffs[1]*xfit+coeffs[2]*xfit^2
-      chisq = total((yfit-yf)^2)/(n_elements(xfit)-2)
     endelse
 
     extrap_value = coeffs[0, *] + coeffs[1, *]*targett
-    scatter = sqrt(chisq*covar[1, 1]*targett^2+chisq*covar[0, 0])/extrap_value
-
-    if (keyword_set(square)) then begin
+    if (keyword_set(square)) then $
       extrap_value = extrap_value + coeffs[2, *]*targett^2
-      scatter = sqrt(chisq*covar[0, 0]+chisq*covar[1, 1]*targett^2+$
-                     covar[2, 2]*targett^4)/extrap_value
-    endif
   endelse
 
   return, extrap_value

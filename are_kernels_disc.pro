@@ -73,24 +73,21 @@ function are_kernels_disc, xin, yin, vin, tin, lmaxin $
 
 ; CREATE A SMALL STEP IN INTENSITY AND DEFINE CONTOURS JUST
 ; ABOVE/BELOW THE SHARED CONTOUR ... NOT CURRENTLY USED.
-;;   if (n_elements(levels) eq 0) then begin
-;;     eps = abs(max(tin[lmaxin], /nan) - shared_contour)/100. 
-;;     above = shared_contour + eps
-;;     below = shared_contour - eps   
-;;   endif else begin
-  dummy = min(abs(levels - shared_contour), thislevel, /nan)
-;;     above = levels[(thislevel - 1) > 0]
-;;     below = levels[(thislevel + 1) < (n_elements(levels)-1)]
-;;   endelse
+  if (n_elements(levels) eq 0) then begin
+    eps = abs(max(tin[lmaxin], /nan) - shared_contour)/100. 
+    above = shared_contour + eps
+    below = shared_contour - eps   
+  endif else begin
+    dummy = min(abs(levels - shared_contour), thislevel, /nan)
+    above = levels[(thislevel - 1) > 0]
+    below = levels[(thislevel + 1) < (n_elements(levels)-1)]
+  endelse
   
 ; INSTEAD, USE THE CONTOUR LEVELS AT AND JUST ABOVE THE SHARED CONTOUR
 ; TO LOOK FOR A JUMP.
 ; Test in case level is 1
+  testlevs = levels[((thislevel-1) > 0):(thislevel > 1)]
 
-  if thislevel eq n_elements(levels)-1 then $
-     testlevs = [levels[thislevel], 2*levels[thislevel]-levels[thislevel-1]] else $
-  testlevs = levels[((thislevel) > 0):(thislevel+1 > 1)]
-  testlevs = testlevs[reverse(sort(testlevs))]
 ; THE X,Y,V COORDINATES OF THE TWO LOCAL MAXES
   x1 = xin[lmaxin[0]] & y1 = yin[lmaxin[0]] & v1 = vin[lmaxin[0]]
   x2 = xin[lmaxin[1]] & y2 = yin[lmaxin[1]] & v2 = vin[lmaxin[1]]  

@@ -36,23 +36,13 @@ function deriv_decimate_kernel, cube, merger, lmaxin, levels = levels $
 ;
 ; MODIFICATION HISTORY:
 ;
-;       Tue Jun 18 21:05:40 2013, erosolo <erosolo@>
-;
-;		Added ability to actually skip derivative decimation for
-;		performance in large data cubes.  
-;
 ;       Documented -- Fri Sep 2 16:20:12 2005, Erik Rosolowsky
 ;                     <erosolow@asgard.cfa.harvard.edu>
 ;-
 
 
-  if n_elements(sigdiscont) eq 0 then sigdiscont = 2 
 
-  if total(sigdiscont) eq 0 then begin
-     message,'Skipping Derivative Decimation',/con
-     return, lmaxin
 
-  endif
 
   vectorify, cube, mask = (cube eq cube) $
     , x = x, y = y, v = v, t = t, id = id $

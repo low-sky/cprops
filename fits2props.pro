@@ -13,9 +13,9 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
                 , bootstrap = bootstrap, dist = dist, bclip = bclip $
                 , physical = physical, xco = xco, minvchan = minvchan $
                 , smwidth = smwidth, rms = rmsin, ecube = ecube $
-                , near = near, far = far, r0 = r0, v0 = v0 $
-                , zero2nan = zero2nan $
-                , round = round
+                , near = near, far = far, r0 = r0, v0 = v0
+  
+
 ;+
 ;
 ; NAME:
@@ -78,10 +78,6 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
     restore, filename
     data = cube  
   endelse
-  if keyword_set(zero2nan) then begin
-    badind = where(data eq 0.0, ct)
-    if ct gt 0 then data[badind] = !values.f_nan
-  endif
 
 ; CALCULATE THE MEAN ABSOLUTE DEVIATION OF THE DATA. THIS COULD BEAR
 ; SOME IMPROVEMENT IN CASE OF PATHOLOGICAL DATASETS WITH EMPTY
@@ -137,12 +133,10 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
     message, 'Setting DEFAULTS for decomposition to uniform physical priors.', /con
     if keyword_set(gal) then dist = gal.dist
     if keyword_set(nonuniform) then begin
-       if n_elements(rmsin) ne n_elements(data) then begin
-          em = errmap_rob(data)
-          good_ind = where(em gt 0, ctr)
-          if ctr gt 0 then rms = median(em[good_ind]) else $
-             rms = keyword_set(rmsin) ? rmsin : mad(data, /finite)
-       endif else rms = rmsin
+      em = errmap_rob(data)
+      good_ind = where(em gt 0, ctr)
+      if ctr gt 0 then rms = median(em[good_ind]) else $
+         rms = keyword_set(rmsin) ? rmsin : mad(data, /finite)
     endif else rms = keyword_set(rmsin) ? rmsin : mad(data, /finite)
     
     if n_elements(hd) gt 0  then begin
@@ -185,8 +179,8 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
     endif
 
 ; Set specfriends to 2 km/s or 1 
-    if n_elements(specfriends) eq 0 then begin
-      specfriends = ceil((2e3/deltav) > 1.0)
+    if n_elements(specpfriends) eq 0 then begin
+      specfriends = (2e3/deltav) > 1.0
       if specfriends eq 1.0 then message, 'Warning: Velocity resolution too coarse for fully accurate decomposition', /con
     endif
   endif
@@ -370,7 +364,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
 ; DO THE DECOMPOSITION. CALLS THE DECOMPOSITION WRAPPER, WHICH TAKES
 ; THE SELECTED DECOMPOSITION MEASURE AND ASSIGNS EACH PIXEL TO A
 ; SUBCLOUD.
-    print,sigma
+
     decomp_wrap, x, y, v, t, asgn, decomp = decomp $
       , subcloud = subcloud, minpix = minpix $
       , sigdiscont = sigdiscont $
@@ -380,7 +374,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
       , nodecomp = nodecomp, fscale = fscale $
       , noextrap = noextrap $
       , friends = friends, specfriends = specfriends $
-      , delta = deltapeak, ppbeam = ppbeam, round = round
+      , delta = deltapeak, ppbeam = ppbeam
 
 ; IF THE "show" KEYWORD IS TURNED ON, THEN OPEN THREE WINDOWS AND SHOW
 ; THE TWO-D VERSION OF THE MASK ALONG EACH OF THE THREE AXES, WITH

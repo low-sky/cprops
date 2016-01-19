@@ -4,7 +4,7 @@ function erf0, x, erftarg = erftarg
   return, errorf(x)-erftarg
 end
 
-function channelnoise, data, spline = spline
+function channelnoise, data
 ;+
 ; NAME:
 ;   channelnoise
@@ -61,13 +61,6 @@ function channelnoise, data, spline = spline
     ind = where(pts lt sig_false*sigma)
     error[i] = stdev(pts[ind])
   endfor
-
-  if keyword_set(spline) then begin
-    xax = findgen(sz[3])
-    ind = where(error eq error)
-    fit = bspline_iterfit(xax[ind], error[ind], nbkpts = sz[3]/30 < 10)
-    error = bspline_valu(xax, fit)
-  endif 
 
   return, error
 end

@@ -1,7 +1,5 @@
 function contour_prop, xin, yin, vin, tin, kernel, levels = levels_in $
-                       , noextrap = noextrap, all_neighbors = all_neighbors, $
-                       remove_min = remove_min, forcelin = forcelin, $
-                       rotate = rotate, err = err, pavec = pavec
+  , noextrap = noextrap, all_neighbors = all_neighbors
 ;+
 ; NAME:
 ;   CONTOUR_PROP
@@ -20,7 +18,6 @@ function contour_prop, xin, yin, vin, tin, kernel, levels = levels_in $
 ; KEYWORD PARAMETERS:
 ;   LEVELS -- The levels with which to contour the data.
 ;   NOEXTRAP -- Do not extrapolate moments to their values at 0K
-;   PAVEC -- Vector of derived rotation angle at all contour levels
 ;
 ; OUTPUTS:
 ;   MOMENTS -- An array of moments with the same number of elements as
@@ -33,6 +30,7 @@ function contour_prop, xin, yin, vin, tin, kernel, levels = levels_in $
 ;
 ;       Documented -- Fri Sep 2 16:29:02 2005, Erik Rosolowsky
 ;                     <erosolow@asgard.cfa.harvard.edu>
+;
 ;		
 ;
 ;-
@@ -50,7 +48,7 @@ function contour_prop, xin, yin, vin, tin, kernel, levels = levels_in $
   contours = contourcloud(xin, yin, vin, tin, x0 = x0, y0 = y0, $
                           v0 = v0, clev = levels, all_neighbors = all_neighbors)
   use_contours = levels
-  pavec = fltarr(n_elements(use_contours))+!values.f_nan 
+
 ;   MEASURE THE PROPERTIES AT EACH CONTOUR, THIS CAN BE QUITE TIME
 ;   INTENSIVE. THE OUTPUT IS AN ARRAY OF MOMENTS CALLED "momra." DO
 ;   THIS BY CALLING THE "cloudmom" ROUTINE TO CALCULATE THE CUMULATIVE
@@ -59,9 +57,7 @@ function contour_prop, xin, yin, vin, tin, kernel, levels = levels_in $
          rmsv:!values.d_nan, flux:!values.d_nan, $
          ermsx:!values.d_nan, ermsy:!values.d_nan, $
          ermsv:!values.d_nan, eflux:!values.d_nan, $
-         covar:!values.d_nan, number:0L, $
-         xcen:!values.d_nan, ycen:!values.d_nan, $
-         vcen:!values.d_nan}
+         covar:!values.d_nan, number:0L}
 
   momra = replicate(mom, n_elements(levels))
 
@@ -72,23 +68,12 @@ function contour_prop, xin, yin, vin, tin, kernel, levels = levels_in $
     yuse = yin[useind]
     vuse = vin[useind]
     tuse = tin[useind]      
-    if n_elements(err) gt 0 then euse = err[useind]
-    if keyword_set(rotate) then begin
-      pa = pa_moment(xuse, yuse, (tuse>0))
-      xrot = xuse*cos(pa)+yuse*sin(pa)
-      yrot = -xuse*sin(pa)+yuse*cos(pa)    
-      xuse = xrot
-      yuse = yrot
-      pavec[j] = pa
-    endif
+    
 ;   CALL THE "cloudmom" ROUTINE TO CALCULATE THE CUMULATIVE MOMENTS
 ;   AND THEN EXTRAPOLATE THEM TO THE TARGET CONTOUR, "targett"
-    mom = cloudmom(xuse, yuse, vuse, tuse-min(tuse)*$
-                   keyword_set(remove_min), mom0t = mom0t $
-                   , targett = targett, noextrap = noextrap, $
-                   forcelin = forcelin, err = euse)
+    mom = cloudmom(xuse, yuse, vuse, tuse, mom0t = mom0t $
+                   , targett = targett, noextrap = noextrap)
     momra[j] = mom
   endfor
-;  stop
   return, momra
 end

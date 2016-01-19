@@ -12,7 +12,7 @@ function galaxies, name, m31 = m31, m33 = m33
 ;   NAME -- Name of the Galaxy in question.  Currently, I've entered
 ;           M31, M33, M64, NGC628, NGC1068, NGC2903, NGC3351, NGC3521,
 ;           NGC3627, NGC4528, NGC4321, NGC4414, NGC4736, NGC5055,
-;           NGC5194, NGC6946, NGC7331, NGC5033, NGC5457
+;           NGC5194, NGC6946, NGC7331, NGC5033, NGC5457, SMC
 ; KEYWORD PARAMETERS:
 ;   M31, M33 -- force values for these galaxies.
 ;
@@ -46,7 +46,7 @@ function galaxies, name, m31 = m31, m33 = m33
     s.dec_gc = convang(double([41, 16, 09.4]))
     s.ra = s.ra_gc
     s.dec = s.dec_gc
-    s.dist = 7.5e5
+    s.dist = 7.7e5
     s.posang = 34.0
     s.inc = 77.0               
     s.vlsr = -300
@@ -98,9 +98,8 @@ function galaxies, name, m31 = m31, m33 = m33
     s.ra = s.ra_gc
     s.dec = s.dec_gc
     s.dist = 8.4e5
-    s.posang = 22.0+180         ; Because receding side is in the SW
-;    s.inc = 56.0
-    s.inc = 52.0     
+    s.posang = 23.0+180         ; Because receding side is in the SW
+    s.inc = 56.0     
     s.vlsr = -179.
   endif
 
@@ -195,7 +194,7 @@ function galaxies, name, m31 = m31, m33 = m33
     s.dec_gc = convang(double([15, 49, 20]))
     s.ra = s.ra_gc
     s.dec = s.dec_gc
-    s.dist = 16.7e6
+    s.dist = 16.1e6
     s.posang = 154
     s.inc = 30
     s.vlsr = 1571
@@ -327,11 +326,47 @@ function galaxies, name, m31 = m31, m33 = m33
     s.dec_gc = convang(double([-69, 45, 22.0]))
     s.ra = s.ra_gc
     s.dec = s.dec_gc
-    s.dist = 6.5e4
+    s.dist = 5.0e4
     s.posang = 0 
     s.inc = 0 
     s.vlsr = 278.0 
   endif
+
+ if name eq 'IC10' then begin
+   s.name = 'IC10'
+   s.ra_gc = convang(double([00,20,17.3]), /ra)
+   s.dec_gc = convang(double([59,18,14]))
+   s.ra = s.ra_gc
+   s.dec = s.dec_gc
+   s.dist = 820.d3
+   s.posang = 0.0
+   s.inc = 0.0
+   s.vlsr = -348.
+ endif
+
+ if name eq 'SMC' then begin
+   s.name = 'SMC'
+   s.ra_gc = convang(double([00, 52, 44.8]), /ra)
+   s.dec_gc = convang(double([-72, 49, 42]))
+   s.ra = s.ra_gc
+   s.dec = s.dec_gc
+   s.dist = 60.d3
+   s.posang = 0.0
+   s.inc = 0.0
+   s.vlsr = 158.
+ endif
+
+if name eq 'MW' then begin
+   s.name = 'MW'
+   s.ra_gc = convang(double([17, 45, 40]), /ra)
+   s.dec_gc = convang(double([-29, 00, 30]))
+   s.ra = s.ra_gc
+   s.dec = s.dec_gc
+   s.dist = 8.5e3
+   s.posang = 0.0
+   s.inc = 90.0
+   s.vlsr = 0.0
+ endif
 
 ;  if name eq '' then begin
 ;    s.name = ''

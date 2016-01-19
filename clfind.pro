@@ -70,7 +70,7 @@ if (nreg eq 0) then return
 
 ; extend each defined region upwards and see
 ; if it merges with previously defined clumps
-for nr=1L,nreg do begin
+for nr=1,nreg do begin
   pix1=where(reg eq nr,npix1)
   dpeak=max(data(pix1),peak)
   kpeak=pix1(peak)/(nx*ny)
@@ -110,7 +110,7 @@ for nr=1L,nreg do begin
         kc=clump_peak(clump_merge,2)
 
 ;       go through pixel by pixel and assign to nearest clump
-        for nr1=0L,npix1-1 do begin
+        for nr1=0,npix1-1 do begin
           k=pix1(nr1)/(nx*ny)
           j=pix1(nr1)/nx - k*ny
           i=pix1(nr1) - (j+k*ny)*nx
@@ -147,7 +147,7 @@ ncl_new=0
 nbad=0
 assign0=assign
 
-for n1=1L,ncl do begin
+for n1=1,ncl do begin
   n0=new_order(n1-1)+1
   iclp=where(assign0 eq n0,count)
 
@@ -188,7 +188,7 @@ header_out(0)="SIMPLE  =                    T /"
 header_out(1)="BITPIX  =                   16 /"
 header_out(2)="NAXIS   =                    3 /"
 n=2
-for i=0L,nlines-1 do begin
+for i=0,nlines-1 do begin
   if (strpos(header(i),'NAXIS1') eq 0) then begin
     n=n+1 & header_out(n)=header(i)
   endif

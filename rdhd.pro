@@ -29,13 +29,6 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
 ;
 ; MODIFICATION HISTORY:
 ;
-;       Mon Jun 10 20:09:36 2013, erosolo <erosolo@>
-;		Added minor trapping for some JCMT headers.  Considering that
-;		this should really be using z2v and v2z codes instead.
-;
-;       Wed Mar 13 20:01:33 2013, erosolo <erosolo@>
-;         Added header parsing for ALMA data.
-;
 ;       Wed Jun 2 09:40:27 2004, <eros@master>
 ;		Added more AIPS compatibility (FREQ0 convention and
 ;		multiple clean entries)
@@ -84,9 +77,6 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
   
   if keyword_set(full) then fast = 0b else fast = 1b
 
-  cms = 2.99792458d8            ; It's the speed of light
-
-
   dim = sxpar(hd, 'NAXIS')
   naxis1 = sxpar(hd, 'NAXIS1')
   naxis2 = sxpar(hd, 'NAXIS2')
@@ -103,29 +93,13 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
                 strpos(hd, 'AIPS') gt 0,  ct)
     if ct gt 0 then begin
       str = hd[max(ind)]
-      str = strsplit(str, /extract)
+      str = strsplit(str, /ext)
       bm_maj = float(str[4])*3600
       bm_min = float(str[6])*3600
       bpa = float(str[8])
     endif
   endif
-
-; CASA beam extraction bits.
-  if bm_maj eq 0 then begin
-     ind = where(strpos(hdr,'restoration:') gt 0 and $
-                 strpos(hdr,'(arcsec)') gt 0, ct)
-     if ct gt 0 then begin
-        str = hdr[max(ind)]
-        str = strsplit(str, /ext)
-        bm_maj = float(str[3]) ; Already in arcsec.
-        bm_min = float(str[5])
-        bpa = float(str[9])
-     endif
-  endif
-
-
   freq = sxpar(hd, 'RESTFREQ') > sxpar(hd, 'FREQ0')
-  freq = freq > sxpar(hd,'RESTFRQ') ; ALMA! Grrrrrr!
   date = sxpar(hd, 'DATE-OBS')
   extast, hd, astrom
 ;nelts = max([naxis1, naxis2])
@@ -182,50 +156,35 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
       endelse
     endelse
 
-    getrot, hd, rotation, cdv
-    nuvec = !values.f_nan
-    
     if naxis3 gt 1 then begin
 ; First, regenerate the astrometry structure to include the THIRD
 ; DIMENSION!!!
-       dv = sxpar(hd,'CDELT3')
-       if dv eq 0 then dv = sxpar(hd,'CD3_3')
-       astrom2 = {CD:astrom.cd, $
-                  CDELT:[astrom.cdelt, dv], $
-                  CRPIX:[astrom.crpix, sxpar(hd, 'CRPIX3')], $
-                  CRVAL:[astrom.crval, sxpar(hd, 'CRVAL3')], $
-                  CTYPE:[astrom.ctype, sxpar(hd, 'CTYPE3')], $
-                  LONGPOLE:astrom.longpole, $
-                  LATPOLE:astrom.latpole, $
-                  PV2:astrom.pv2}
-       astrom = astrom2
-       velvec = (findgen(naxis3)+1-astrom.crpix[2])*$
+      astrom2 = {CD:astrom.cd, $
+                 CDELT:[astrom.cdelt, sxpar(hd, 'CDELT3')], $
+                 CRPIX:[astrom.crpix, sxpar(hd, 'CRPIX3')], $
+                 CRVAL:[astrom.crval, sxpar(hd, 'CRVAL3')], $
+                 CTYPE:[astrom.ctype, sxpar(hd, 'CTYPE3')], $
+                 LONGPOLE:astrom.longpole, $
+                 LATPOLE:astrom.latpole, $
+                 PV2:astrom.pv2}
+      astrom = astrom2
+      velvec = (findgen(naxis3)+1-astrom.crpix[2])*$
                astrom.cdelt[2]+astrom.crval[2]
-       cdv = [cdv, sxpar(hd, 'CDELT3')]
-       if (strcompress(sxpar(hd,'CUNIT3'),/rem) eq 'Hz') and $
-          (freq gt 0) then begin
-          message,/con,$
-                  'Frequency Cube!  Converting to VRAD using nu0 = '+$
-                  string(freq)
-          nuvec = velvec
-          velvec = cms*(1-nuvec/freq)
-       endif
     endif else begin
-       velvec = 0 
-       dim = 2
+      velvec = 0 
+      dim = 2
     endelse
-    if stregex(sxpar(hd,'CUNIT3'),'km/s',/bool) then velvec = velvec*1e3
     if not keyword_set(ms) then velvec = velvec/1000.
-    
-    ppbeam = abs((bm_maj*bm_min/3600.^2)/(cdv[0]*cdv[1])*$
+
+    ppbeam = abs((bm_maj*bm_min/3600.^2)/(astrom.cdelt[0]*astrom.cdelt[1])*$
                  2*!pi/(8*alog(2)))
-    
+
     structure = {naxis1:naxis1, naxis2:naxis2, $
-                 naxis3:naxis3, ra:ravec, dec:decvec, v:velvec, nu:nuvec,$
+                 naxis3:naxis3, ra:ravec, dec:decvec, v:velvec, $
                  ctype:astrom.ctype, $
                  crpix:astrom.crpix, $
                  crval:astrom.crval, $
-                 cdelt:cdv, $
+                 cdelt:astrom.cdelt, $
                  k2jypb:k2jypb, jypb2k:jypb2k, freq:freq, $
                  bmaj:bm_maj, bmin:bm_min, date:date, bpa:bpa, $
                  ppbeam:ppbeam}
