@@ -1,6 +1,6 @@
 function are_kernels_disc, xin, yin, vin, tin, lmaxin $
   , shared_contour = shared_contour $
-  , levels = levels, sigdiscont = sigdiscont $
+  , levels = levels_in, sigdiscont = sigdiscont $
   , nredun = nredun, fscale = fscale 
 ;+
 ; NAME:
@@ -41,6 +41,8 @@ function are_kernels_disc, xin, yin, vin, tin, lmaxin $
 ;       <erosolow@asgard.cfa.harvard.edu>
 ;-
   
+  levels = reverse(sort(levels_in))
+
 ; WRITE SOME ERROR CHECKING (ONLY 2 LMAXIN, ETC.) -- ALSO, DEBUG!
 
 ; EXTRAPOLATE TO ZERO KELVIN
@@ -87,9 +89,9 @@ function are_kernels_disc, xin, yin, vin, tin, lmaxin $
 ; TO LOOK FOR A JUMP.
 ; Test in case level is 1
 
-  if thislevel eq n_elements(levels)-1 then $
+  if thislevel eq 0 then $
      testlevs = [levels[thislevel], 2*levels[thislevel]-levels[thislevel-1]] else $
-  testlevs = levels[((thislevel) > 0):(thislevel+1 > 1)]
+  testlevs = levels[((thislevel-1) > 0):(thislevel > 1)]
   testlevs = testlevs[reverse(sort(testlevs))]
 ; THE X,Y,V COORDINATES OF THE TWO LOCAL MAXES
   x1 = xin[lmaxin[0]] & y1 = yin[lmaxin[0]] & v1 = vin[lmaxin[0]]

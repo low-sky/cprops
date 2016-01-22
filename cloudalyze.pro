@@ -454,7 +454,7 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
                          src_maj = smaj, $
                          src_min = smin
        cprops.rad_noex = sqrt(smaj*smin)*cprops.rmstorad/2.354
-       if cprops.rad_noex eq 0 then cprops.rad_pc = !values.f_nan
+       if cprops.rad_noex eq 0 then cprops.rad_noex = !values.f_nan
     endif
 
     
