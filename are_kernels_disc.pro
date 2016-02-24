@@ -41,7 +41,7 @@ function are_kernels_disc, xin, yin, vin, tin, lmaxin $
 ;       <erosolow@asgard.cfa.harvard.edu>
 ;-
   
-  levels = reverse(sort(levels_in))
+  levels = levels_in[reverse(sort(levels_in))]
 
 ; WRITE SOME ERROR CHECKING (ONLY 2 LMAXIN, ETC.) -- ALSO, DEBUG!
 
