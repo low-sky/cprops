@@ -37,6 +37,8 @@ function channelnoise, data, spline = spline
 ;
 ;-
 
+forward_function bspline_iterfit, bspline_valu
+
   sz = size(data)
   sig_false = bisection(3., 'erf0', erftarg = (1d0-(5d-1)/(sz[1]*sz[2])), $
                         /double)
