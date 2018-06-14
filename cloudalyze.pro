@@ -46,6 +46,7 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
 ; MODIFICATION HISTORY:
 ;       Documented.
 ;	Mon Sep  5 13:27:34 2005
+;       added output of FWHM sizes and PA after beam deconvolution 2018-06-14 CMF
 ;   
 ; REQUIRES:
 ; 
@@ -116,7 +117,10 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
                  mlum_msun : nan, $ ; MSUN                 
                  mlum_uc : nan, $ ; FRACTIONAL UNCERTAINTY
                  mvir_msun : nan, $ ; MSUN
-                 mvir_uc : nan, $ ; FRACTIONAL UNCERTAINTY
+                 mvir_uc : nan, $     ; FRACTIONAL UNCERTAINTY
+                 fwhm_maj_dc : nan, $   ; PARSECS
+                 fwhm_min_dc : nan, $   ; PARSECS
+                 pa_dc : nan, $ ; degrees
                  name : '', $   ; STRING OF DATASET NAME
                  beamfwhm_pc : nan, $ ; PARSECS
                  beammaj_pc : nan, $
@@ -429,9 +433,18 @@ function cloudalyze, cube, mask, gal = gal, hd = hdin, dist = dist $
                          beam_maj = cprops.beammaj_pc, $
                          beam_min = cprops.beammin_pc, $
                          src_maj = smaj, $
-                         src_min = smin
+                         src_min = smin, $
+                         src_pa = spa
        cprops.rad_pc = sqrt(smaj*smin)*cprops.rmstorad/2.354
-       if cprops.rad_pc eq 0 then cprops.rad_pc = !values.f_nan
+       cprops.fwhm_maj_dc = smaj
+       cprops.fwhm_min_dc = smin
+       cprops.pa_dc = spa ; measured E from N
+       if cprops.rad_pc eq 0 then begin
+          cprops.rad_pc = !values.f_nan
+          cprops.fwhm_maj_dc = !values.f_nan
+          cprops.fwhm_min_dc = !values.f_nan
+          cprops.pa_dc = !values.f_nan
+       endif
     endif
 
 ;    cprops.rad_pc = $
