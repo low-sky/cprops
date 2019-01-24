@@ -45,7 +45,6 @@ function sigma_cube, data, width = width, emap = emap, spline = spline, savgol=s
      bad = 1b-(erode(1b-bad, elt))
      badidx = where(bad, ct)
      if ct gt 0 then emap[badidx] = emaporig[badidx]
-     stop
   endif
 
 
