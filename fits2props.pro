@@ -160,6 +160,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
         if n_elements(bclip) eq 0 then bclip = 2.5*(h.cdelt[2]/1e3) ;  SCALE to KELVIN!!
       endif
       deltav = h.cdelt[2]
+      if deltav.vunit eq 'km s-1' then deltav *= 1e3
     endif else begin
       if keyword_set(gal) then begin
         beamfwhm = gal.beamfwhm ; ARCSEC
@@ -459,7 +460,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
     newmask = intarr(sz[1], sz[2], sz[3])
     newmask[x, y, v] = new_asgn
   endelse  
-
+  
 ; Return data to real units if it's in significance units
   if keyword_set(nonuniform) then $
     data = data*ecube

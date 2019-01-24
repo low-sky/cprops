@@ -112,10 +112,10 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
 
 ; CASA beam extraction bits.
   if bm_maj eq 0 then begin
-     ind = where(strpos(hdr,'restoration:') gt 0 and $
-                 strpos(hdr,'(arcsec)') gt 0, ct)
+     ind = where(strpos(hd,'restoration:') gt 0 and $
+                 strpos(hd,'(arcsec)') gt 0, ct)
      if ct gt 0 then begin
-        str = hdr[max(ind)]
+        str = hd[max(ind)]
         str = strsplit(str, /ext)
         bm_maj = float(str[3]) ; Already in arcsec.
         bm_min = float(str[5])
@@ -214,7 +214,15 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
        velvec = 0 
        dim = 2
     endelse
-    if stregex(sxpar(hd,'CUNIT3'),'km/s',/bool) then velvec = velvec*1e3
+    velunit = 'm s-1'
+    if stregex(sxpar(hd,'CUNIT3'),'km/s',/bool) then begin
+       velvec = velvec * 1e3
+       velunit = 'km s-1'
+    endif
+    if stregex(sxpar(hd,'CUNIT3'),'km s-1',/bool) then begin
+       velvec = velvec * 1e3
+       velunit = 'km s-1'
+    endif
     if not keyword_set(ms) then velvec = velvec/1000.
     
     ppbeam = abs((bm_maj*bm_min/3600.^2)/(cdv[0]*cdv[1])*$
@@ -228,7 +236,7 @@ pro rdhd, hd, structure = structure, cmat = cmat, ms = ms, fast = fast, $
                  cdelt:cdv, $
                  k2jypb:k2jypb, jypb2k:jypb2k, freq:freq, $
                  bmaj:bm_maj, bmin:bm_min, date:date, bpa:bpa, $
-                 ppbeam:ppbeam}
+                 ppbeam:ppbeam, vunit:velunit}
   endelse
   return
 end

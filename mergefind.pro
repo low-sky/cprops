@@ -42,6 +42,7 @@ function mergefind, cube, kernels, nlevels = nlevels $
   repeat begin 
 ; Mask and label a data cube for a given contour value
     testvalue = lvs[z]
+    if lvs[z] eq max(lvs) then testvalue = testvalue * 0.999999
     l = label_region(cube ge testvalue, all_neighbors = all_neighbors, /ulong)
 ; Figure out what the kernels are assigned to
     asgns = l[kernels]
