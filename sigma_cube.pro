@@ -47,8 +47,6 @@ function sigma_cube, data, width = width, emap = emap, spline = spline, savgol=s
      if ct gt 0 then emap[badidx] = emaporig[badidx]
   endif
 
-
-
   escale = channelnoise(data, spline = spline)
   escale = escale/mean(escale[where(escale eq escale)])
   ecube = fltarr(sz[1], sz[2], sz[3])
