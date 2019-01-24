@@ -14,7 +14,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
                 , physical = physical, xco = xco, minvchan = minvchan $
                 , smwidth = smwidth, rms = rmsin, ecube = ecube $
                 , near = near, far = far, r0 = r0, v0 = v0 $
-                , zero2nan = zero2nan $
+                , zero2nan = zero2nan, savgol = savgol $
                 , round = round
 ;+
 ;
@@ -50,6 +50,10 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
 ; MAD; RDHD; SIGMA_CUBE; CIRCLE
 ;
 ; MODIFICATION HISTORY:
+;
+;   Thu Jan 24 18:36:18 2019, <erosolow@rick>
+;
+;		Added SAVGOL functionality pass through
 ;
 ;-
 
@@ -138,7 +142,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
     if keyword_set(gal) then dist = gal.dist
     if keyword_set(nonuniform) then begin
        if n_elements(rmsin) ne n_elements(data) then begin
-          em = errmap_rob(data)
+          em = errmap_rob(data, savgol=savgol)
           good_ind = where(em gt 0, ctr)
           if ctr gt 0 then rms = median(em[good_ind]) else $
              rms = keyword_set(rmsin) ? rmsin : mad(data, /finite)
@@ -255,7 +259,8 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
 ; then move data into units of significance for decomposition:
     message, 'Estimating variance at every position from data', /con
     if n_elements(ecube) eq 0 then $ 
-       ecube = sigma_cube(data, width = smwidth) ; THIS IS THE "ERROR" CUBE
+       ecube = sigma_cube(data, width = smwidth, $
+                          savgol=savgol) ; THIS IS THE "ERROR" CUBE
     if clip_count gt 0 then data[clip_index] =  $
       (bclip*(1+atan(data[clip_index]/bclip-1)))
     data = data/ecube
