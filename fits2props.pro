@@ -15,7 +15,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
                 , smwidth = smwidth, rms = rmsin, ecube = ecube $
                 , near = near, far = far, r0 = r0, v0 = v0 $
                 , zero2nan = zero2nan, savgol = savgol $
-                , round = round
+                , round = round, twod = twod
 ;+
 ;
 ; NAME:
@@ -260,7 +260,8 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
     message, 'Estimating variance at every position from data', /con
     if n_elements(ecube) eq 0 then $ 
        ecube = sigma_cube(data, width = smwidth, $
-                          savgol=savgol) ; THIS IS THE "ERROR" CUBE
+                          savgol=savgol, $
+                          twod=twod) ; THIS IS THE "ERROR" CUBE
     if clip_count gt 0 then data[clip_index] =  $
       (bclip*(1+atan(data[clip_index]/bclip-1)))
     data = data/ecube

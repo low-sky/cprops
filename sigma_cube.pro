@@ -1,4 +1,6 @@
-function sigma_cube, data, width = width, emap = emap, spline = spline, savgol=savgol
+function sigma_cube, data, width = width, emap = emap, $
+                     spline = spline, savgol=savgol, $
+                     twod = twod
 ;+
 ; NAME:
 ;   SIGMA_CUBE
@@ -13,6 +15,7 @@ function sigma_cube, data, width = width, emap = emap, spline = spline, savgol=s
 ;   DATA -- a data cube
 ;
 ; KEYWORD PARAMETERS:
+;   TWOD  -- Set this to ignore channel variations
 ;   WIDTH -- The width of smoothing to apply to the data cube.
 ;            Generally the number of pixels in a beam.  Too much
 ;            smoothing may artificially lower the rms.
@@ -34,12 +37,13 @@ function sigma_cube, data, width = width, emap = emap, spline = spline, savgol=s
   if n_elements(emap) eq 0 then emap = errmap_rob(data)
 ;  if width gt 0 then emap = smooth(emap, width, /edge_trun, /nan)
   if width gt 0 then emap = median(emap, width)
+  if n_elements(twod) eq 0 then twod = 0b 
+
   if n_elements(savgol) gt 0 then begin
      filter = savgol2d(nx=savgol, ny=savgol, degree=3)
      bad = emap ne emap
      emaporig = emap
      emap = convol(emap, filter, /edge_trun, invalid = 0, /nan)
-     ;edge = emap eq 0
      relt = floor(savgol/2 + 1)
      elt = shift(dist(2*relt+1, 2*relt+1), relt, relt) le relt
      bad = 1b-(erode(1b-bad, elt))
@@ -47,10 +51,13 @@ function sigma_cube, data, width = width, emap = emap, spline = spline, savgol=s
      if ct gt 0 then emap[badidx] = emaporig[badidx]
   endif
 
-  escale = channelnoise(data, spline = spline)
-  escale = escale/mean(escale[where(escale eq escale)])
+  if 1b-keyword_set(twod) then begin 
+     escale = channelnoise(data, spline = spline)
+     escale = escale/mean(escale[where(escale eq escale)])
+  endif else escale = fltarr(sz[3]) + 1
   ecube = fltarr(sz[1], sz[2], sz[3])
   for ii = 0, sz[3]-1 do ecube[*, *, ii] = emap*escale[ii]
+
 
   return, ecube
 end

@@ -4,7 +4,7 @@ function erf0, x, erftarg = erftarg
   return, errorf(x)-erftarg
 end
 
-function errmap_rob, cube
+function errmap_rob, cube, method=method, roll=roll
 ;+
 ; NAME:
 ;    errmap_rob
@@ -52,21 +52,33 @@ if sz[0] ne 3 then begin
 endif
 sig_false = bisection(3., 'erf0', erftarg = (1d0-(5d-1)/sz[3]), /double)
 
+if n_elements(method) eq 0 then method = 'roll' 
+
 ; Cube might be really big, so use FOR loops.
 
 map = fltarr(sz[1], sz[2])+!values.f_nan;mad(cube)
-for i = 0, sz[1]-1 do begin
-  for j = 0, sz[2]-1 do begin
-    spec = (cube[i, j, *])
-    ind = where(spec eq spec)
-    if total(ind) eq -1 then continue    
-    ind = where(spec lt 0)
-    if n_elements(ind) lt 10 then continue
-    sigma = stdev([spec[ind], -spec[ind]])
-    ind = where(spec lt sig_false*sigma)
-    map[i, j] = stdev(spec[ind])
-  endfor 
-endfor
+
+
+if method eq 'negative' then begin
+   for i = 0, sz[1]-1 do begin
+      for j = 0, sz[2]-1 do begin
+         spec = (cube[i, j, *])
+         ind = where(spec eq spec)
+         if total(ind) eq -1 then continue    
+         ind = where(spec lt 0)
+         if n_elements(ind) lt 10 then continue
+         sigma = stdev([spec[ind], -spec[ind]])
+         ind = where(spec lt sig_false*sigma)
+         map[i, j] = stdev(spec[ind])
+      endfor 
+   endfor
+endif
+
+if method eq 'roll' then begin
+   if n_elements(roll) eq 0 then roll = 2 
+   map = mad(cube - shift(cube, 0, 0, roll), $
+             dimension=3) / sqrt(2)
+endif
 
 return, map
 end
