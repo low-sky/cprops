@@ -15,7 +15,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
                 , smwidth = smwidth, rms = rmsin, ecube = ecube $
                 , near = near, far = far, r0 = r0, v0 = v0 $
                 , zero2nan = zero2nan, savgol = savgol $
-                , round = round, twod = twod
+                , round = round, twod = twod, maskfilename = maskfilename
 ;+
 ;
 ; NAME:
@@ -87,6 +87,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
     if ct gt 0 then data[badind] = !values.f_nan
   endif
 
+  
 ; CALCULATE THE MEAN ABSOLUTE DEVIATION OF THE DATA. THIS COULD BEAR
 ; SOME IMPROVEMENT IN CASE OF PATHOLOGICAL DATASETS WITH EMPTY
 ; REGIONS.
@@ -98,6 +99,11 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
     print, 'MAD: ', sigma, '; GAL noise: ', gal.noise
   
 ; CHECK IF A MASK ALREADY EXISTS. IF NOT, WE WILL MAKE ONE BELOW.
+  if n_elements(maskfilename) gt 0 then begin 
+     if stregex(maskfilename, 'fits', /bool) then begin
+        mask = readfits(maskfilename, maskhd)
+     endif
+  endif
   if (n_elements(makemask) eq 0) then $
     makemask = (n_elements(mask) ne n_elements(data))
 
@@ -284,7 +290,6 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
                               shift(constraint, 0, 0, -1)) gt 0)
     mask = dilate_mask(mask, constraint = constraint)
   endif
-
 
 
 ; END OF MASKING ...
