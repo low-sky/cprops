@@ -15,7 +15,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
                 , smwidth = smwidth, rms = rmsin, ecube = ecube $
                 , near = near, far = far, r0 = r0, v0 = v0 $
                 , zero2nan = zero2nan, savgol = savgol $
-                , round = round, twod = twod, maskfilename = maskfilename
+                , round = round, twod = twod
 ;+
 ;
 ; NAME:
@@ -99,11 +99,6 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
     print, 'MAD: ', sigma, '; GAL noise: ', gal.noise
   
 ; CHECK IF A MASK ALREADY EXISTS. IF NOT, WE WILL MAKE ONE BELOW.
-  if n_elements(maskfilename) gt 0 then begin 
-     if stregex(maskfilename, 'fits', /bool) then begin
-        mask = readfits(maskfilename, maskhd)
-     endif
-  endif
   if (n_elements(makemask) eq 0) then $
     makemask = (n_elements(mask) ne n_elements(data))
 
@@ -230,7 +225,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
 ; Explore BMFRIENDS beams in every direction if BMFRIEND is set for
 ; initial guess at local maxima.
   if n_elements(bmfriends) gt 0 then friends = $
-    ceil(sqrt(ppbeam/!pi > 1)*bmfriends/2)
+    ceil(sqrt(ppbeam/!pi > 1)*bmfriends/2.0)
 
   if n_elements(friends) eq 0 then friends = 1
 
@@ -259,12 +254,11 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
 ; %&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&%&
 
   if keyword_set(rmsin) then sigma = rmsin
-
   if keyword_set(nonuniform) then begin
 ; If the noise in the data is nonuniform, first estimate the noise and
 ; then move data into units of significance for decomposition:
-    message, 'Estimating variance at every position from data', /con
     if n_elements(ecube) eq 0 then $ 
+       message, 'Estimating variance at every position from data', /con
        ecube = sigma_cube(data, width = smwidth, $
                           savgol=savgol, $
                           twod=twod) ; THIS IS THE "ERROR" CUBE
@@ -382,7 +376,6 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
 ; DO THE DECOMPOSITION. CALLS THE DECOMPOSITION WRAPPER, WHICH TAKES
 ; THE SELECTED DECOMPOSITION MEASURE AND ASSIGNS EACH PIXEL TO A
 ; SUBCLOUD.
-    print,sigma
     decomp_wrap, x, y, v, t, asgn, decomp = decomp $
       , subcloud = subcloud, minpix = minpix $
       , sigdiscont = sigdiscont $
