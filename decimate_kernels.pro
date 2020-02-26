@@ -1,6 +1,7 @@
 function decimate_kernels, k_in,  cube, ALL_NEIGHBORS = all_neighbors, $
-  sigma = sigma, delta = delta, merger = merger, minpix = minpix;, $
-;  levels = levels
+                           sigma = sigma, delta = delta, merger = merger, $
+                           minpix = minpix, $
+                           levels = levels
 
 ;+
 ; NAME:
@@ -66,28 +67,52 @@ function decimate_kernels, k_in,  cube, ALL_NEIGHBORS = all_neighbors, $
   order = sort(kernel_value)
 ; Set a vector which tracks good kernels to all kernels good.
   valid_kernel = intarr(n_elements(kernels))+1
-  for i = 0, n_elements(order)-1 do begin
-    valid_kernel_ind = where(valid_kernel, valid_ct)
-    newkernels = kernels[valid_kernel_ind]
-    if valid_ct gt 1 then begin
+  if n_elements(kernels) gt 100 then begin
+     merger = mergefind(cube, kernels, levels = levels)
+     merger[indgen(n_elements(kernels)), $
+            indgen(n_elements(kernels))] = !values.f_nan
+     for i = 0, n_elements(order)-1 do begin
+        contrast = kernel_value[order[i]] - max(merger[order[i],*], /nan)
+        if contrast / sigma lt delta then begin
+           delta_rejects = delta_rejects+1
+           valid_kernel[order[i]] = 0           
+        endif
+     endfor
+     for i = 0, n_elements(order)-1 do begin
+                                ; skip if not valid
+        if valid_kernel[order[i]] eq 0 then continue
+        mergelevel = max(merger[order,*], /nan)
+        l = label_region(cube gt mergelevel, $
+                         all_neighbors = all_neighbors, $
+                         /ulong)
+        value = min(cube[where(l eq l[kernels[order[i]]], npixels)], /nan)
+        if npixels lt minpix then valid_kernel[order[i]] = 0
+        if npixels lt minpix then area_rejects = area_rejects+1
+     endfor
+  endif else begin
+     for i = 0, n_elements(order)-1 do begin
+        valid_kernel_ind = where(valid_kernel, valid_ct)
+        newkernels = kernels[valid_kernel_ind]
+        if valid_ct gt 1 then begin
 ; For this kernel, calculate the levels where it merges will all
 ; remaining kernels.
-      merge_level = minimergefind(cube, kernels[order[i]], $
-                                  newkernels, $; levels = levels, $
-                                  npixels = npixels, $
-                                  all_neighbors = all_neighbors)
+           merge_level = minimergefind(cube, kernels[order[i]], $
+                                       newkernels, $ ; levels = levels, $
+                                       npixels = npixels, $
+                                       all_neighbors = all_neighbors)
 ; If there aren't enough pixels associated with the kernel it's bad. 
-      if npixels lt minpix then valid_kernel[order[i]] = 0
-      if npixels lt minpix then area_rejects = area_rejects+1
-      
+           if npixels lt minpix then valid_kernel[order[i]] = 0
+           if npixels lt minpix then area_rejects = area_rejects+1
+           
 ; If it's not high enough above the merge level, then it's bad.
-      if (kernel_value[order[i]]-merge_level)/sigma lt delta then begin
-        delta_rejects = delta_rejects+1
-        valid_kernel[order[i]] = 0
-      endif
-    endif
-  endfor
-
+           if (kernel_value[order[i]]-merge_level)/sigma lt delta then begin
+              delta_rejects = delta_rejects+1
+              valid_kernel[order[i]] = 0
+           endif
+        endif
+     endfor
+  endelse
+  
   message, 'Kernels rejected for area: '+string(area_rejects), /con
   message, 'Kernels rejected for contrast: '+string(delta_rejects), /con
   valid_kernel_ind = where(valid_kernel, valid_ct)

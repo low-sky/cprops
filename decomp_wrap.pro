@@ -143,7 +143,8 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
 
 ;     Determine a master set of contour values with the contour_values
 ;     function.
-        levels = contour_values(cloud, nlevels = (n_elements(xcld)/50 > 250) < 1000)
+         levels = contour_values(cloud, $
+                                 nlevels = (n_elements(xcld)/50 > 250) < 1000)
 ;  Search for local maxima by comparing each datum with its neighbors.
         lmax = alllocmax(minicube, friends = friends, $
                          specfriends = specfriends, round = round)
@@ -153,11 +154,11 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
 ; Only continue if there are 2+ maxima.
         if n_elements(lmax) gt 1 then begin
 ;  Pare down this kernels according to area and contrast restrictions.
-
+          ; testing
           decimkern = decimate_kernels(lmax, minicube, $
-                                     all_neighbors = all_neighbors $
-                                     , delta = delta, sigma = sigma $
-                                     , minpix = minpix);, levels = levels)
+                                       all_neighbors = all_neighbors $
+                                       , delta = delta, sigma = sigma $
+                                       , minpix = minpix, levels = levels)
           message, 'Number of kernels after area and contrast decimation:'+$
                    strcompress(string(n_elements(decimkern))), /con
 
