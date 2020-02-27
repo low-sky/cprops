@@ -8,7 +8,7 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
                  , sigma = sigma, eclump = eclump, fscale = fscale $
                  , noextrap = noextrap, friends = friends $
                  , specfriends = specfriends, delta = delta, ppbeam = ppbeam $
-                 , round = round
+                 , round = round, usefast = usefast
 
 ;+
 ; NAME:
@@ -158,7 +158,8 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
           decimkern = decimate_kernels(lmax, minicube, $
                                        all_neighbors = all_neighbors $
                                        , delta = delta, sigma = sigma $
-                                       , minpix = minpix, levels = levels)
+                                       , minpix = minpix, levels = levels $
+                                       , usefast = usefast)
           message, 'Number of kernels after area and contrast decimation:'+$
                    strcompress(string(n_elements(decimkern))), /con
 
@@ -167,12 +168,21 @@ pro decomp_wrap, x, y, v, t, assignment, kernels = kernels $
           if n_elements(decimkern) gt 1 then begin
 ; Calculate the merger matrix
             merger = mergefind(minicube, decimkern, levels = levels)
-            kernels2 = deriv_decimate_kernel(minicube, merger, $
-                                             decimkern $
-                                             , levels = levels $
-                                             , sigdiscont = sigdiscont $
-                                             , nredun = nredun $ 
-                                             , fscale = fscale)
+            if keyword_set(usefast) then begin
+               kernels2 = deriv_decimate_kernel_fast(minicube, merger, $
+                                                     decimkern $
+                                                     , levels = levels $
+                                                     , sigdiscont = sigdiscont $
+                                                     , nredun = nredun $ 
+                                                     , fscale = fscale)
+            endif else begin
+               kernels2 = deriv_decimate_kernel(minicube, merger, $
+                                                decimkern $
+                                                , levels = levels $
+                                                , sigdiscont = sigdiscont $
+                                                , nredun = nredun $ 
+                                                , fscale = fscale)
+            endelse
             message, 'Number of kernels after derivative decimation:'+$
               strcompress(string(n_elements(kernels2))), /con
 

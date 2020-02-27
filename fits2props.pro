@@ -15,7 +15,7 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
                 , smwidth = smwidth, rms = rmsin, ecube = ecube $
                 , near = near, far = far, r0 = r0, v0 = v0 $
                 , zero2nan = zero2nan, savgol = savgol $
-                , round = round, twod = twod
+                , round = round, twod = twod, usefast = usefast
 ;+
 ;
 ; NAME:
@@ -377,15 +377,16 @@ pro fits2props, filename, props = mad_props, gal = gal, show = show $
 ; THE SELECTED DECOMPOSITION MEASURE AND ASSIGNS EACH PIXEL TO A
 ; SUBCLOUD.
     decomp_wrap, x, y, v, t, asgn, decomp = decomp $
-      , subcloud = subcloud, minpix = minpix $
-      , sigdiscont = sigdiscont $
-      , nredun = nredun, clfind = clfind $
-      , sigma = sigma, kernels = kernels $
-      , eclump = eclump, newkernels = newkernels $
-      , nodecomp = nodecomp, fscale = fscale $
-      , noextrap = noextrap $
-      , friends = friends, specfriends = specfriends $
-      , delta = deltapeak, ppbeam = ppbeam, round = round
+                 , subcloud = subcloud, minpix = minpix $
+                 , sigdiscont = sigdiscont $
+                 , nredun = nredun, clfind = clfind $
+                 , sigma = sigma, kernels = kernels $
+                 , eclump = eclump, newkernels = newkernels $
+                 , nodecomp = nodecomp, fscale = fscale $
+                 , noextrap = noextrap $
+                 , friends = friends, specfriends = specfriends $
+                 , delta = deltapeak, ppbeam = ppbeam, round = round $
+                 , usefast = usefast
 
 ; IF THE "show" KEYWORD IS TURNED ON, THEN OPEN THREE WINDOWS AND SHOW
 ; THE TWO-D VERSION OF THE MASK ALONG EACH OF THE THREE AXES, WITH

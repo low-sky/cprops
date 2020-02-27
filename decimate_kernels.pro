@@ -1,7 +1,7 @@
 function decimate_kernels, k_in,  cube, ALL_NEIGHBORS = all_neighbors, $
                            sigma = sigma, delta = delta, merger = merger, $
                            minpix = minpix, $
-                           levels = levels
+                           levels = levels, usefast = usefast
 
 ;+
 ; NAME:
@@ -67,7 +67,7 @@ function decimate_kernels, k_in,  cube, ALL_NEIGHBORS = all_neighbors, $
   order = sort(kernel_value)
 ; Set a vector which tracks good kernels to all kernels good.
   valid_kernel = intarr(n_elements(kernels))+1
-  if n_elements(kernels) gt 100 then begin
+  if keyword_set(usefast) then begin
      merger = mergefind(cube, kernels, levels = levels)
      merger[indgen(n_elements(kernels)), $
             indgen(n_elements(kernels))] = !values.f_nan
